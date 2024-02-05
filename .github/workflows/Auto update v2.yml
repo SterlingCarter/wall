@@ -2,22 +2,27 @@
 # Description: Auto update package
 #
 name: "Auto update v2"
+
 on:
-  repository_dispatch:
-  workflow_dispatch:
-    inputs:
-      ssh:
-        description: 'SSH Actions'
-        required: false
-        default: 'false'
   push:
     paths:
-      - '.github/workflows/Auto update packages v1.yml'
+      - '.github/workflows/Auto update v2.yml'
   schedule:
     - cron: "0 */8 * * *"
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'packages'
+        required: false
+        default: 'false'
+
+      is_update_sing-box:
+        description: 'is update sing-box'
+        required: false
+        default: 'true'
+    
 env:
   TZ: Asia/Shanghai
-
 
 jobs:
   job_init:
@@ -31,7 +36,6 @@ jobs:
       - name: Initialization environment
         run: |
           sudo timedatectl set-timezone "$TZ"
-
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@main
@@ -53,14 +57,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pakcages: [adguardhome, alist, chinadns-ng, dockerd, filebrowser, gost, mosdns, naiveproxy, lua-neturl, lucky, redsocks2, smartdns, upx, upx-static, UnblockNeteaseMusic, v2raya, brook, hysteria, ipt2socks, microsocks, trojan, trojan-go, v2ray-core, v2ray-plugin, xray-core, xray-plugin, v2ray-geoip, v2ray-geosite]
+        pakcages: [adguardhome, alist, alist-web, chinadns-ng, ddns-go, dockerd, filebrowser, gost, mosdns, lua-neturl, lucky, redsocks2, smartdns, shadowsocks-rust, upx, UnblockNeteaseMusic, v2raya, brook, hysteria, ipt2socks, microsocks, trojan, trojan-go, v2ray-core, v2ray-plugin, xray-core, xray-plugin, v2ray-geoip, v2ray-geosite]
         include:
           - pakcages: adguardhome
             folder: adguardhome
             version_line: 9
-            hash_line: 15
+            hash_line: 14
             version_head: PKG_VERSION:=
-            hash_head: PKG_MIRROR_HASH:=
+            hash_head: PKG_HASH:=
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
             release_download_url: https://codeload.github.com/AdguardTeam/AdGuardHome/tar.gz/v
             file_name: 
@@ -70,10 +74,20 @@ jobs:
             version_line: 10
             hash_line: 16
             version_head: PKG_VERSION:=
-            hash_head: PKG_HASH:=
-            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/alist-org/alist/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
+            hash_head: \PKG_HASH:=
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/alist-org/alist/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
             release_download_url: https://codeload.github.com/alist-org/alist/tar.gz/v
             file_name: 
+
+          - pakcages: alist-web
+            folder: alist
+            version_line: 11
+            hash_line: 26
+            version_head: PKG_WEB_VERSION:=
+            hash_head: \  HASH:=
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/alist-org/alist-web/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'
+            release_download_url: https://github.com/alist-org/alist-web/releases/download/
+            file_name: /dist.tar.gz 
 
           - pakcages: chinadns-ng
             folder: chinadns-ng
@@ -81,10 +95,20 @@ jobs:
             hash_line: 13
             version_head: PKG_VERSION:=
             hash_head: PKG_HASH:=
-            release_api_command: curl -s "https://api.github.com/repos/zfl9/chinadns-ng/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' 
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/zfl9/chinadns-ng/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'
             release_download_url: https://codeload.github.com/zfl9/chinadns-ng/tar.gz/
-            file_name: 
+            file_name:
             
+          - pakcages: ddns-go
+            folder: ddns-go
+            version_line: 11
+            hash_line: 16
+            version_head: PKG_VERSION:=
+            hash_head: PKG_HASH:=
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/jeessy2/ddns-go/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
+            release_download_url: https://codeload.github.com/jeessy2/ddns-go/tar.gz/v
+            file_name:
+
           - pakcages: dockerd
             folder: dockerd
             version_line: 4
@@ -93,7 +117,7 @@ jobs:
             hash_head: PKG_HASH:=
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/moby/moby/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
             release_download_url: https://codeload.github.com/moby/moby/tar.gz/v
-            file_name:             
+            file_name:            
 
           - pakcages: filebrowser
             folder: filebrowser
@@ -103,7 +127,7 @@ jobs:
             hash_head: PKG_HASH:=
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/filebrowser/filebrowser/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
             release_download_url: https://codeload.github.com/filebrowser/filebrowser/tar.gz/v
-            file_name: 
+            file_name:
 
           - pakcages: gost
             folder: gost
@@ -125,15 +149,15 @@ jobs:
             release_download_url: https://codeload.github.com/IrineSistiana/mosdns/tar.gz/v
             file_name: 
 
-          - pakcages: naiveproxy
-            folder: naiveproxy
-            version_line: 8
-            hash_line: 13
-            version_head: PKG_VERSION:=
-            hash_head: PKG_HASH:=
-            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/klzgrad/naiveproxy/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
-            release_download_url: https://codeload.github.com/klzgrad/naiveproxy/tar.gz/v
-            file_name: 
+#          - pakcages: naiveproxy
+#            folder: naiveproxy
+#            version_line: 8
+#            hash_line: 13
+#            version_head: PKG_VERSION:=
+#            hash_head: PKG_HASH:=
+#            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/klzgrad/naiveproxy/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
+#            release_download_url: https://codeload.github.com/klzgrad/naiveproxy/tar.gz/v
+#            file_name: 
 
           - pakcages: lua-neturl
             folder: lua-neturl
@@ -175,20 +199,20 @@ jobs:
             release_download_url: https://codeload.github.com/pymumu/smartdns/tar.gz/
             file_name: 
 
+          - pakcages: shadowsocks-rust
+            folder: shadowsocks-rust
+            version_line: 9
+            hash_line: 14
+            version_head: PKG_VERSION:=
+            hash_head: \  PKG_HASH:=
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
+            release_download_url: https://codeload.github.com/shadowsocks/shadowsocks-rust/tar.gz/v
+            file_name:            
+
           - pakcages: upx
             folder: upx
             version_line: 10
             hash_line: 15
-            version_head: PKG_VERSION:=
-            hash_head: PKG_HASH:=
-            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/upx/upx/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
-            release_download_url: https://codeload.github.com/upx/upx/tar.gz/v
-            file_name:
-
-          - pakcages: upx-static
-            folder: upx-static
-            version_line: 6
-            hash_line: 40
             version_head: PKG_VERSION:=
             hash_head: PKG_HASH:=
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/upx/upx/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
@@ -210,10 +234,21 @@ jobs:
             version_line: 8
             hash_line: 13
             version_head: PKG_VERSION:=
-            hash_head: PKG_HASH:=
+            hash_head: \PKG_HASH:=
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/v2rayA/v2rayA/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
             release_download_url: https://codeload.github.com/v2rayA/v2rayA/tar.gz/v
-            file_name: 			
+            file_name: 	
+
+          - pakcages: v2raya-web
+            folder: v2raya
+            version_line: 8
+            hash_line: 63
+            version_head: PKG_VERSION:=
+            hash_head: \          HASH:=
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/v2rayA/v2rayA/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
+            release_download_url: https://github.com/v2rayA/v2rayA/releases/download/v
+            file_name: /web.tar.gz
+    
 
           - pakcages: brook
             folder: brook
@@ -232,7 +267,7 @@ jobs:
             version_head: PKG_VERSION:=
             hash_head: PKG_HASH:=
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/apernet/hysteria/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
-            release_download_url: https://codeload.github.com/apernet/hysteria/tar.gz/v
+            release_download_url: https://codeload.github.com/apernet/hysteria/tar.gz/app/v
             file_name:
 
           - pakcages: ipt2socks
@@ -261,7 +296,7 @@ jobs:
             hash_line: 14
             version_head: PKG_VERSION:=
             hash_head: PKG_HASH:=
-            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/SagerNet/sing-box/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g' | awk -F 'v' '{print $2}'
             release_download_url: https://codeload.github.com/SagerNet/sing-box/tar.gz/v
             file_name:
 
@@ -335,7 +370,6 @@ jobs:
             release_download_url: https://github.com/v2fly/geoip/releases/download/
             file_name: /geoip.dat
 
-
           - pakcages: v2ray-geosite
             folder: v2ray-geodata
             version_line: 24
@@ -345,6 +379,17 @@ jobs:
             release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/v2fly/domain-list-community/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'
             release_download_url: https://github.com/v2fly/domain-list-community/releases/download/
             file_name: /dlc.dat
+
+          - pakcages: v2ray-geosite-ir
+            folder: v2ray-geodata
+            version_line: 33
+            hash_line: 39
+            version_head: GEOSITE_IRAN_VER:=
+            hash_head: \  HASH:=
+            release_api_command: wget -qO- -t5 -T5 "https://api.github.com/repos/bootmortis/iran-hosted-domains/releases" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'
+            release_download_url: https://github.com/bootmortis/iran-hosted-domains/releases/download/
+            file_name: /iran.dat
+
 
     steps:
       - name: Checkout
@@ -360,13 +405,27 @@ jobs:
       - name: Check ${{ matrix.pakcages }}
         id: check
         run: |
-          cd && cd work/wall/wall/${{ matrix.folder }} 
-          Old_PKG_VERSION=$(sed -n '${{ matrix.version_line }}p' Makefile | awk -F '=' '{print $2}')
-          New_PKG_VERSION=$(${{ matrix.release_api_command }})
-          echo "${{ matrix.pakcages }}现在版本: $Old_PKG_VERSION"
-          echo "${{ matrix.pakcages }}最新版本: $New_PKG_VERSION"
-              
-          if [ "$Old_PKG_VERSION" = "$New_PKG_VERSION" ];then echo "status=failure" >> $GITHUB_OUTPUT; echo "${{ matrix.pakcages }}版本为最新版本$New_PKG_VERSION,无需更新"; else echo "New_PKG_VERSION=$New_PKG_VERSION" >> $GITHUB_OUTPUT;  echo "status=success" >> $GITHUB_OUTPUT; fi;
+          is_continue=true
+
+          if [ "${{ github.event.inputs.is_update_sing-box }}" != "true" ] && [ "${{ matrix.pakcages }}" = "sing-box" ]; then
+            is_continue=false
+          fi
+          if [ "$is_continue" = "true" ]; then
+            cd && cd work/wall/wall/${{ matrix.folder }} 
+            Old_PKG_VERSION=$(sed -n '${{ matrix.version_line }}p' Makefile | awk -F '=' '{print $2}')
+            New_PKG_VERSION=$(${{ matrix.release_api_command }})
+            echo "${{ matrix.pakcages }}目前版本: $Old_PKG_VERSION"
+            echo "${{ matrix.pakcages }}最新版本: $New_PKG_VERSION"
+            if [ "$Old_PKG_VERSION" = "$New_PKG_VERSION" ]; then 
+              echo "status=failure" >> $GITHUB_OUTPUT; 
+              echo "${{ matrix.pakcages }}版本为最新版本$New_PKG_VERSION,无需更新"; 
+            else 
+              echo "New_PKG_VERSION=$New_PKG_VERSION" >> $GITHUB_OUTPUT;  
+              echo "status=success" >> $GITHUB_OUTPUT;
+            fi
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT;
+          fi
 
       - name: Update ${{ matrix.pakcages }}
         id: update
@@ -378,7 +437,8 @@ jobs:
           cd && cd main && mkdir -p ${{ matrix.pakcages }} && cd ${{ matrix.pakcages }}
           wget -P / ${{ matrix.release_download_url }}$New_PKG_VERSION${{ matrix.file_name }}
           file_name=${{ matrix.file_name }}
-          if [ ! -n "${{ matrix.file_name }}" ]; then PKG_HASH=$(sha256sum v$New_PKG_VERSION) && PKG_HASH=${PKG_HASH%% *}; else PKG_HASH=$(sha256sum ${file_name##*/}) && PKG_HASH=${PKG_HASH%% *}; fi;
+          is_v=$(echo ${{ matrix.release_download_url }} | awk -F/ '{print $NF}')
+          if [ ! -n "${{ matrix.file_name }}" ]; then PKG_HASH=$(sha256sum $is_v$New_PKG_VERSION) && PKG_HASH=${PKG_HASH%% *}; else PKG_HASH=$(sha256sum ${file_name##*/}) && PKG_HASH=${PKG_HASH%% *}; fi;
           cd && cd work/wall/wall/${{ matrix.folder }} 
           sed -i "${{ matrix.hash_line }}c ${{ matrix.hash_head }}$PKG_HASH" Makefile
           echo "已更新${{ matrix.pakcages }}版本到: $New_PKG_VERSION"
@@ -389,7 +449,6 @@ jobs:
 
           cd && cd work/wall/wall
           echo "branch_exists=$(git ls-remote --heads origin ${{ matrix.pakcages }}-$New_PKG_VERSION | tr -d '\n')" >> $GITHUB_OUTPUT
-          sed -i '/^PKG_HASH:= *$/s//PKG_HASH:=skip/' chinadns-ng/Makefile
 
       - name: Git Auto Commit
         uses: stefanzweifel/git-auto-commit-action@master
